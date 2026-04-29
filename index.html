@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data Predictor</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0f172a;
+        --card: rgba(30, 41, 59, 0.7);
+        --border: rgba(255, 255, 255, 0.1);
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --blue: #60a5fa;
+        --purple: #a78bfa;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        color: var(--text);
+        background-color: var(--bg);
+      }
+
+      .page {
+        min-height: 100%;
+      }
+
+      .shell {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 52px 16px 96px;
+      }
+
+      .hero {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        align-items: start;
+      }
+
+      @media (max-width: 860px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .layout .card {
+        margin: 0;
+        max-width: none;
+      }
+
+      .column {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        min-width: 0;
+      }
+
+      .titleRow {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(38px, 4.8vw, 56px);
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+        font-weight: 900;
+        color: transparent;
+        background-image: linear-gradient(90deg, var(--blue), var(--purple));
+        background-clip: text;
+        -webkit-background-clip: text;
+      }
+
+      .subtitle {
+        margin: 12px auto 0;
+        max-width: 720px;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+
+      .card {
+        margin: 22px auto 0;
+        max-width: 720px;
+        padding: 18px 18px 16px;
+        border-radius: 18px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        box-shadow: 0 24px 70px rgba(2, 6, 23, 0.6);
+        backdrop-filter: blur(10px);
+      }
+
+      .resultCard {
+        padding: 18px 18px 18px;
+      }
+
+      .placeholderText {
+        font-size: 13px;
+        color: rgba(148, 163, 184, 0.9);
+        line-height: 1.6;
+      }
+
+      .cardHeader {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .iconBadge {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+      }
+
+      .iconBadge svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .iconBlue {
+        background: rgba(59, 130, 246, 0.18);
+        color: rgba(96, 165, 250, 1);
+      }
+
+      .iconPurple {
+        background: rgba(139, 92, 246, 0.18);
+        color: rgba(167, 139, 250, 1);
+      }
+
+      .iconPink {
+        background: rgba(236, 72, 153, 0.16);
+        color: rgba(244, 114, 182, 1);
+      }
+
+      .iconAmber {
+        background: rgba(245, 158, 11, 0.16);
+        color: rgba(251, 191, 36, 1);
+      }
+
+      .cardTitle {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+
+      .button {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        color: rgba(255, 255, 255, 0.96);
+        padding: 14px 14px;
+        border-radius: 16px;
+        font-size: 16px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        width: 100%;
+      }
+
+      .button:disabled {
+        opacity: 0.55;
+      }
+
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .backtestStack {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.78);
+        letter-spacing: 0.02em;
+        margin-bottom: 10px;
+      }
+
+      .uploadRow {
+        display: block;
+      }
+
+      .fileInput {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(51, 65, 85, 1);
+        background: rgba(30, 41, 59, 1);
+        width: 100%;
+      }
+
+      .fileInput input[type="file"] {
+        width: 100%;
+        color: rgba(148, 163, 184, 1);
+        font-size: 13px;
+      }
+
+      .fileInput input[type="file"]::file-selector-button {
+        margin-right: 14px;
+        border: 0;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(37, 99, 235, 1);
+        color: rgba(255, 255, 255, 0.98);
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .fileInput input[type="file"]::file-selector-button:hover {
+        background: rgba(29, 78, 216, 1);
+      }
+
+      .hint {
+        font-size: 12px;
+        color: rgba(148, 163, 184, 0.9);
+        line-height: 1.5;
+      }
+
+      .status {
+        margin-top: 12px;
+        font-size: 12px;
+        line-height: 1.5;
+        color: rgba(148, 163, 184, 0.92);
+      }
+
+      .error {
+        color: rgba(248, 113, 113, 0.95);
+      }
+
+      .forecast {
+        margin-top: 0;
+        padding: 14px 14px 12px;
+        border-radius: 16px;
+        border: 1px solid rgba(59, 130, 246, 0.26);
+        text-align: center;
+        background: linear-gradient(
+            180deg,
+            rgba(59, 130, 246, 0.14),
+            rgba(139, 92, 246, 0.06)
+          ),
+          rgba(15, 23, 42, 0.2);
+        box-shadow: 0 18px 52px rgba(2, 6, 23, 0.45);
+      }
+
+      .forecastTitle {
+        font-size: 12px;
+        color: rgba(148, 163, 184, 0.95);
+        margin: 0 0 6px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .forecastValue {
+        font-size: clamp(30px, 4vw, 44px);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        margin: 0;
+        color: rgba(255, 255, 255, 1);
+      }
+
+      .forecastDesc {
+        margin-top: 12px;
+        text-align: left;
+        font-size: 12px;
+        line-height: 1.65;
+        color: rgba(148, 163, 184, 0.92);
+      }
+
+      .modelDetails {
+        margin-top: 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        background: rgba(15, 23, 42, 0.22);
+        overflow: hidden;
+      }
+
+      .modelDetails summary {
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 12px;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(226, 232, 240, 0.92);
+      }
+
+      .modelDetails summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .modelDetails summary::after {
+        content: "▾";
+        color: rgba(148, 163, 184, 0.95);
+        transform: rotate(0deg);
+        transition: transform 140ms ease;
+      }
+
+      .modelDetails[open] summary::after {
+        transform: rotate(180deg);
+      }
+
+      .modelDetails[open] summary {
+        border-bottom: 1px solid rgba(51, 65, 85, 0.75);
+      }
+
+      .modelDetails .forecastDesc {
+        margin-top: 0;
+        padding: 12px 12px 12px;
+      }
+
+      .forecastDesc .k {
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 11px;
+        color: rgba(241, 245, 249, 0.92);
+      }
+
+      .formula {
+        margin-top: 8px;
+        padding: 10px 10px;
+        border-radius: 14px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        background: rgba(15, 23, 42, 0.28);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        font-size: 12px;
+        color: rgba(226, 232, 240, 0.92);
+        white-space: pre-wrap;
+      }
+
+      .params {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .pill {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        background: rgba(15, 23, 42, 0.22);
+        color: rgba(226, 232, 240, 0.92);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+
+      .method {
+        margin-top: 8px;
+        font-size: 12px;
+        color: rgba(148, 163, 184, 0.9);
+        line-height: 1.55;
+        text-align: left;
+      }
+
+      .chartWrap {
+        width: 100%;
+        height: 280px;
+        position: relative;
+      }
+
+      .metricsGrid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .paramsRow {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .paramsRow .pill {
+        width: 100%;
+        text-align: center;
+        border-radius: 16px;
+        padding: 12px 12px;
+      }
+
+      .metric {
+        padding: 12px 12px;
+        border-radius: 16px;
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        background: rgba(15, 23, 42, 0.22);
+      }
+
+      .metricLabel {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(148, 163, 184, 0.92);
+        font-weight: 800;
+      }
+
+      .metricValue {
+        margin-top: 6px;
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: -0.01em;
+        color: rgba(241, 245, 249, 0.95);
+      }
+
+ 
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="page">
+      <main class="shell">
+        <section class="hero" aria-label="Page Title">
+          <div class="titleRow">
+            <h1>Data Predictor</h1>
+          </div>
+        </section>
+
+        <div class="layout" aria-label="Main Layout">
+          <div class="column" aria-label="Left Column">
+            <section class="card" aria-label="Upload">
+              <div class="cardHeader">
+                <div class="iconBadge iconBlue" aria-hidden="true">
+                  <svg
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                    ></path>
+                  </svg>
+                </div>
+                <h2 class="cardTitle">1. Upload</h2>
+              </div>
+              <div class="uploadRow">
+                <div class="fileInput">
+                  <input id="file" type="file" accept=".xlsx" />
+                </div>
+              </div>
+              <div class="hint">
+                Required: y (no missing values). Optional: date (display only).
+              </div>
+
+              <div id="status" class="status">Waiting for a .xlsx file…</div>
+            </section>
+
+            <section class="card resultCard" aria-label="Forecast">
+              <div class="cardHeader">
+                <div class="iconBadge iconPurple" aria-hidden="true">
+                  <svg
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    ></path>
+                  </svg>
+                </div>
+                <h2 class="cardTitle">2. Forecast</h2>
+              </div>
+              <div id="forecast" class="forecast">
+                <p class="forecastTitle">Forecast y(N+1)</p>
+                <p class="forecastValue" id="forecastValue">—</p>
+              </div>
+              <details class="modelDetails">
+                <summary>Model Details</summary>
+                <div class="forecastDesc">
+                  <div class="k">Ensemble (Average of 3 Models)</div>
+                  <div class="formula">
+ŷ(t+1) = ( ŷ_RW(t+1) + ŷ_AR(t+1) + ŷ_EWMA(t+1) ) / 3
+                  </div>
+
+                  <div class="k" style="margin-top: 12px">1) Random Walk with Drift</div>
+                  <div class="formula">
+y(t+1) = y(t) + μ
+μ = mean( y(t) - y(t-1) ) over the last L1 differences
+                  </div>
+
+                  <div class="k" style="margin-top: 12px">2) AR(1)</div>
+                  <div class="formula">
+y(t) = φ · y(t-1)
+φ is estimated by OLS slope (through origin) using the last L2 pairs
+ŷ_AR(t+1) = φ · y(t)
+                  </div>
+
+                  <div class="k" style="margin-top: 12px">3) EWMA</div>
+                  <div class="formula">
+ŷ(t+1) = α · y(t) + (1-α) · ŷ(t)
+initialize: ŷ(1) = y(1)
+                  </div>
+                </div>
+              </details>
+            </section>
+          </div>
+
+          <div class="column" aria-label="Right Column">
+            <section class="card resultCard" aria-label="Backtesting">
+              <div class="cardHeader">
+                <div class="iconBadge iconPink" aria-hidden="true">
+                  <svg
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+                    ></path>
+                  </svg>
+                </div>
+                <h2 class="cardTitle">3. Backtesting</h2>
+              </div>
+              <div class="stack">
+                <div id="backtestEmpty" class="placeholderText">
+                  Upload a dataset to run rolling one-step-ahead backtesting on
+                  the last 20% of the series.
+                </div>
+
+                <div id="backtestContent" class="backtestStack" style="display: none">
+                  <div class="chartWrap">
+                    <canvas id="backtestChart"></canvas>
+                  </div>
+
+                  <div class="paramsRow" aria-label="Trained Parameters">
+                    <div class="pill" id="backParamL1">L1 = —</div>
+                    <div class="pill" id="backParamL2">L2 = —</div>
+                    <div class="pill" id="backParamAlpha">α = —</div>
+                  </div>
+
+                  <div class="metricsGrid" aria-label="Error Metrics">
+                    <div class="metric">
+                      <div class="metricLabel">RMSE</div>
+                      <div class="metricValue" id="rmseValue">—</div>
+                    </div>
+                    <div class="metric">
+                      <div class="metricLabel">MAE</div>
+                      <div class="metricValue" id="maeValue">—</div>
+                    </div>
+                    <div class="metric">
+                      <div class="metricLabel">MAPE</div>
+                      <div class="metricValue" id="mapeValue">—</div>
+                    </div>
+                  </div>
+
+                  <button id="downloadBtn" class="button" type="button" disabled>
+                    Download Forecasts (.xlsx)
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const fileInput = document.getElementById("file");
+      const statusEl = document.getElementById("status");
+      const forecastValueEl = document.getElementById("forecastValue");
+      const backParamL1El = document.getElementById("backParamL1");
+      const backParamL2El = document.getElementById("backParamL2");
+      const backParamAlphaEl = document.getElementById("backParamAlpha");
+      const backtestEmptyEl = document.getElementById("backtestEmpty");
+      const backtestContentEl = document.getElementById("backtestContent");
+      const rmseValueEl = document.getElementById("rmseValue");
+      const maeValueEl = document.getElementById("maeValue");
+      const mapeValueEl = document.getElementById("mapeValue");
+      const downloadBtn = document.getElementById("downloadBtn");
+
+      const L1_CANDIDATES = [10, 20, 50];
+      const L2_CANDIDATES = [20, 50];
+      const ALPHA_CANDIDATES = [0.1, 0.2, 0.3];
+
+      let backtestChart = null;
+      let latestBacktest = null;
+      let trainedParams = null;
+
+      function setStatus(text, type) {
+        statusEl.textContent = text;
+        statusEl.classList.toggle("error", type === "error");
+      }
+
+      function formatNumber(value) {
+        if (!Number.isFinite(value)) return String(value);
+        return new Intl.NumberFormat(undefined, {
+          maximumFractionDigits: 6,
+        }).format(value);
+      }
+
+      function formatDateLabel(value) {
+        if (value === null || value === undefined || value === "") return "";
+        if (typeof value === "number" && Number.isFinite(value)) {
+          const ms = (value - 25569) * 86400 * 1000;
+          const d = new Date(ms);
+          if (!Number.isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+        }
+        return String(value);
+      }
+
+      function getHeaderIndex(headers, name) {
+        const target = String(name).trim().toLowerCase();
+        return headers.findIndex((h) => String(h).trim().toLowerCase() === target);
+      }
+
+      function updateParamPills(params) {
+        const alphaText = Number.isFinite(params.alpha)
+          ? params.alpha.toFixed(2)
+          : String(params.alpha);
+
+        backParamL1El.textContent = `L1 = ${params.L1}`;
+        backParamL2El.textContent = `L2 = ${params.L2}`;
+        backParamAlphaEl.textContent = `α = ${alphaText}`;
+      }
+
+      async function readXlsx(file) {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true });
+        return rows;
+      }
+
+      function mean(values) {
+        let s = 0;
+        for (let i = 0; i < values.length; i++) s += values[i];
+        return values.length ? s / values.length : 0;
+      }
+
+      function median(values) {
+        if (!values.length) return NaN;
+        const sorted = [...values].sort((a, b) => a - b);
+        const mid = Math.floor(sorted.length / 2);
+        if (sorted.length % 2 === 1) return sorted[mid];
+        return (sorted[mid - 1] + sorted[mid]) / 2;
+      }
+
+      function snapToAllowed(value, allowed) {
+        let best = allowed[0];
+        let bestDist = Math.abs(value - best);
+        for (let i = 1; i < allowed.length; i++) {
+          const d = Math.abs(value - allowed[i]);
+          if (d < bestDist || (d === bestDist && allowed[i] < best)) {
+            best = allowed[i];
+            bestDist = d;
+          }
+        }
+        return best;
+      }
+
+      function forecastRandomWalkDrift(series, l1) {
+        const n = series.length;
+        const last = series[n - 1];
+        const diffCount = Math.min(l1, n - 1);
+        if (diffCount <= 0) return last;
+        const diffs = new Array(diffCount);
+        for (let i = 0; i < diffCount; i++) {
+          const idx = n - diffCount + i;
+          diffs[i] = series[idx] - series[idx - 1];
+        }
+        const mu = mean(diffs);
+        return last + mu;
+      }
+
+      function estimateAr1Phi(series, l2) {
+        const n = series.length;
+        const pairCount = Math.min(l2, n - 1);
+        if (pairCount <= 0) return 1;
+        let num = 0;
+        let den = 0;
+        for (let i = 0; i < pairCount; i++) {
+          const idx = n - pairCount + i;
+          const x = series[idx - 1];
+          const y = series[idx];
+          num += x * y;
+          den += x * x;
+        }
+        if (Math.abs(den) < 1e-12) return 1;
+        return num / den;
+      }
+
+      function forecastAr1(series, l2) {
+        const n = series.length;
+        const last = series[n - 1];
+        const phi = estimateAr1Phi(series, l2);
+        return phi * last;
+      }
+
+      function computeEwmaState(series, alpha) {
+        let hat = series[0];
+        for (let i = 1; i < series.length; i++) {
+          hat = alpha * series[i] + (1 - alpha) * hat;
+        }
+        return hat;
+      }
+
+      function forecastEwma(series, alpha) {
+        const last = series[series.length - 1];
+        const hat = computeEwmaState(series, alpha);
+        return alpha * last + (1 - alpha) * hat;
+      }
+
+      function forecastEnsemble(series, params) {
+        const rw = forecastRandomWalkDrift(series, params.L1);
+        const ar = forecastAr1(series, params.L2);
+        const ewma = forecastEwma(series, params.alpha);
+        return (rw + ar + ewma) / 3;
+      }
+
+      function computeBacktestEnsemble(yValues, params) {
+        const n = yValues.length;
+        const trainSize = Math.floor(0.8 * n);
+        const testSize = n - trainSize;
+        const forecasts = new Array(testSize);
+        const actuals = yValues.slice(trainSize);
+
+        for (let i = 0; i < testSize; i++) {
+          const t = trainSize + i;
+          const history = yValues.slice(0, t);
+          forecasts[i] = forecastEnsemble(history, params);
+        }
+
+        return { trainSize, testSize, forecasts, actuals };
+      }
+
+      function evaluateParamsOnTrain(trainSeries, params) {
+        if (trainSeries.length < 2) return { rmse: NaN };
+        let sumSq = 0;
+        let count = 0;
+
+        for (let t = 1; t < trainSeries.length; t++) {
+          const history = trainSeries.slice(0, t);
+          const pred = forecastEnsemble(history, params);
+          const err = pred - trainSeries[t];
+          sumSq += err * err;
+          count += 1;
+        }
+
+        return { rmse: Math.sqrt(sumSq / count) };
+      }
+
+      function trainParamsFromTrainSet(yValues) {
+        const n = yValues.length;
+        const trainSize = Math.floor(0.8 * n);
+        const trainSeries = yValues.slice(0, trainSize);
+
+        if (trainSeries.length < 3) {
+          return null;
+        }
+
+        const results = [];
+        for (const L1 of L1_CANDIDATES) {
+          for (const L2 of L2_CANDIDATES) {
+            for (const alpha of ALPHA_CANDIDATES) {
+              const params = { L1, L2, alpha };
+              const score = evaluateParamsOnTrain(trainSeries, params);
+              results.push({ params, rmse: score.rmse });
+            }
+          }
+        }
+
+        results.sort((a, b) => a.rmse - b.rmse);
+        const topK = Math.min(5, results.length);
+        const top = results.slice(0, topK).map((r) => r.params);
+
+        const L1Med = snapToAllowed(median(top.map((p) => p.L1)), L1_CANDIDATES);
+        const L2Med = snapToAllowed(median(top.map((p) => p.L2)), L2_CANDIDATES);
+        const alphaMed = snapToAllowed(
+          median(top.map((p) => p.alpha)),
+          ALPHA_CANDIDATES
+        );
+
+        return { L1: L1Med, L2: L2Med, alpha: alphaMed };
+      }
+
+      function computeMetrics(actuals, forecasts) {
+        let sumSq = 0;
+        let sumAbs = 0;
+        let sumApe = 0;
+        let apeCount = 0;
+
+        for (let i = 0; i < actuals.length; i++) {
+          const a = actuals[i];
+          const f = forecasts[i];
+          const e = f - a;
+          sumSq += e * e;
+          sumAbs += Math.abs(e);
+          if (Math.abs(a) > 1e-12) {
+            sumApe += Math.abs(e / a);
+            apeCount += 1;
+          }
+        }
+
+        const rmse = Math.sqrt(sumSq / actuals.length);
+        const mae = sumAbs / actuals.length;
+        const mape = apeCount > 0 ? (sumApe / apeCount) * 100 : NaN;
+
+        return { rmse, mae, mape };
+      }
+
+      function renderBacktest(labels, actuals, forecasts) {
+        const canvas = document.getElementById("backtestChart");
+        if (!canvas) return;
+
+        if (backtestChart) {
+          backtestChart.destroy();
+          backtestChart = null;
+        }
+
+        backtestChart = new Chart(canvas, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "Actual",
+                data: actuals,
+                borderColor: "rgba(96, 165, 250, 1)",
+                backgroundColor: "rgba(96, 165, 250, 0.15)",
+                pointRadius: 0,
+                borderWidth: 2,
+                tension: 0.25,
+              },
+              {
+                label: "Forecast",
+                data: forecasts,
+                borderColor: "rgba(167, 139, 250, 1)",
+                backgroundColor: "rgba(167, 139, 250, 0.12)",
+                pointRadius: 0,
+                borderWidth: 2,
+                tension: 0.25,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: { color: "rgba(241, 245, 249, 0.85)" },
+              },
+              tooltip: {
+                mode: "index",
+                intersect: false,
+              },
+            },
+            interaction: {
+              mode: "index",
+              intersect: false,
+            },
+            scales: {
+              x: {
+                grid: { color: "rgba(51, 65, 85, 0.45)" },
+                ticks: { color: "rgba(148, 163, 184, 0.9)", maxTicksLimit: 6 },
+              },
+              y: {
+                grid: { color: "rgba(51, 65, 85, 0.45)" },
+                ticks: { color: "rgba(148, 163, 184, 0.9)" },
+              },
+            },
+          },
+        });
+      }
+
+      function buildForecastOutputXlsx(testDates, testForecasts) {
+        const rows = [];
+        for (let i = 0; i < testForecasts.length; i++) {
+          if (testDates) rows.push({ date: testDates[i], y: testForecasts[i] });
+          else rows.push({ y: testForecasts[i] });
+        }
+
+        const sheet = XLSX.utils.json_to_sheet(rows, {
+          header: testDates ? ["date", "y"] : ["y"],
+        });
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, sheet, "forecast");
+        return workbook;
+      }
+
+      fileInput.addEventListener("change", async () => {
+        forecastValueEl.textContent = "—";
+        rmseValueEl.textContent = "—";
+        maeValueEl.textContent = "—";
+        mapeValueEl.textContent = "—";
+        latestBacktest = null;
+        downloadBtn.disabled = true;
+        backtestContentEl.style.display = "none";
+        backtestEmptyEl.style.display = "block";
+
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) {
+          setStatus("Waiting for a .xlsx file…");
+          return;
+        }
+
+        if (!file.name.toLowerCase().endsWith(".xlsx")) {
+          setStatus("Invalid file type: please upload a .xlsx file.", "error");
+          return;
+        }
+
+        setStatus("Reading file and computing forecast…");
+
+        try {
+          const rows = await readXlsx(file);
+          if (!rows || rows.length < 2) {
+            setStatus(
+              "The Excel sheet is empty (or only has a header row).",
+              "error"
+            );
+            return;
+          }
+
+          const headers = rows[0] || [];
+          const yIndex = getHeaderIndex(headers, "y");
+          const dateIndex = getHeaderIndex(headers, "date");
+          if (yIndex === -1) {
+            setStatus(
+              'Missing required column: the header must include a column named "y".',
+              "error"
+            );
+            return;
+          }
+
+          const yValues = [];
+          const dateValues = [];
+          for (let i = 1; i < rows.length; i++) {
+            const row = rows[i] || [];
+            const cell = row[yIndex];
+            const isMissing =
+              cell === null ||
+              cell === undefined ||
+              (typeof cell === "string" && cell.trim() === "");
+            if (isMissing) {
+              setStatus(
+                `Missing value in column "y" at row ${i + 1}.`,
+                "error"
+              );
+              return;
+            }
+            const num = Number(cell);
+            if (!Number.isFinite(num)) {
+              setStatus(
+                `Non-numeric value in column "y" at row ${i + 1}.`,
+                "error"
+              );
+              return;
+            }
+            yValues.push(num);
+            if (dateIndex !== -1) dateValues.push(row[dateIndex]);
+          }
+
+          if (yValues.length === 0) {
+            setStatus('No values were found in column "y".', "error");
+            return;
+          }
+
+          trainedParams = trainParamsFromTrainSet(yValues);
+          if (!trainedParams) {
+            setStatus("Not enough data to train parameters (need at least N ≥ 4).", "error");
+            return;
+          }
+
+          updateParamPills(trainedParams);
+
+          const forecast = forecastEnsemble(yValues, trainedParams);
+          forecastValueEl.textContent = formatNumber(forecast);
+
+          if (yValues.length < 2) {
+            setStatus("At least 2 samples are required for backtesting.", "error");
+            return;
+          }
+
+          const backtest = computeBacktestEnsemble(yValues, trainedParams);
+          const testDates =
+            dateIndex !== -1 ? dateValues.slice(backtest.trainSize) : null;
+
+          const labels =
+            testDates && testDates.length === backtest.testSize
+              ? testDates.map((d, i) => formatDateLabel(d) || String(i + 1))
+              : backtest.actuals.map((_, i) => String(i + 1));
+
+          const metrics = computeMetrics(backtest.actuals, backtest.forecasts);
+          rmseValueEl.textContent = formatNumber(metrics.rmse);
+          maeValueEl.textContent = formatNumber(metrics.mae);
+          mapeValueEl.textContent = Number.isFinite(metrics.mape)
+            ? `${formatNumber(metrics.mape)}%`
+            : "—";
+
+          renderBacktest(labels, backtest.actuals, backtest.forecasts);
+
+          latestBacktest = {
+            testDates,
+            testForecasts: backtest.forecasts,
+          };
+
+          backtestEmptyEl.style.display = "none";
+          backtestContentEl.style.display = "block";
+          downloadBtn.disabled = false;
+          setStatus(`Read N=${yValues.length} samples. Forecast ready.`);
+        } catch (err) {
+          setStatus(
+            `Read failed: ${err && err.message ? err.message : String(err)}`,
+            "error"
+          );
+        }
+      });
+
+      downloadBtn.addEventListener("click", () => {
+        if (!latestBacktest) return;
+        const workbook = buildForecastOutputXlsx(
+          latestBacktest.testDates,
+          latestBacktest.testForecasts
+        );
+        XLSX.writeFile(workbook, "forecast_test_segment.xlsx", {
+          compression: true,
+        });
+      });
+    </script>
+  </body>
+</html>
